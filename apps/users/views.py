@@ -84,23 +84,48 @@ class LoginView(View):
             })
 
 
-# добавил миксин UserAuthenticationCheckMixin
 class UserProfileView(UserAuthenticationCheckMixin, View):
     def get(self, request, *args, **kwargs):
-        create_form = CreateGroupForm()
-        update_form = UpdateGroupForm()
-        avatar_form = AvatarChange()
         user = request.user
         groups = user.owned_groups.all()
-        return render(
+        
+        user_data = {
+            "id": request.user.id,
+            "username": request.user.username,
+            "full_name": request.user.get_full_name(),
+            "email": request.user.email,
+            "avatar": request.user.avatar_image,
+            "role": request.user.role,
+            "bio": request.user.bio,
+            "is_active": request.user.is_active
+        }
+        
+        groups_data = [group.get_data() for group in groups]
+        
+        create_form_data = {
+            "name": "",
+            "description": "",
+            "image_url": ""
+        }
+        
+        update_form_data = {
+            "name": "",
+            "description": "",
+            "image_url": ""
+        }
+        
+        return inertia_render(
             request,
-            'users/profile.html',
-            {
-                'user': user,
-                'create_form': create_form,
-                'update_form': update_form,
-                'avatar_form': avatar_form,
-                'groups': groups
+            "ProfileForm",
+            props={
+                    "user": user_data,
+                    "groups": groups_data,
+                    "form": {
+                        "create_form": create_form_data,
+                        "update_form": update_form_data,
+                        "avatar_form": {"avatar": ""}
+                    },
+                    "errors": {}
             }
         )
 
@@ -140,6 +165,7 @@ class UserCabinetView(UserAuthenticationCheckMixin, View):
             'usage_stats': usage_stats,
             'user_role': request.role,  # Используем атрибут из middleware
         }
+        
     def get(self, request, *args, **kwargs):
         user = request.user
         props = self._build_base_props(request, user)
