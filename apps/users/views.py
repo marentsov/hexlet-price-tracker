@@ -42,7 +42,7 @@ class LoginView(View):
             "Auth",
             props={'form': {
                 "data": {
-                        "username": "",
+                        "email": "",
                         "password": ""
                 }, 
                 "errors": {}
@@ -76,7 +76,7 @@ class LoginView(View):
             return inertia_render(request, "Auth", props={
                 "form": {
                     "data": {
-                        "username": request.POST.get("username", ""),
+                        "email": request.POST.get("email", ""),
                         "password": ""
                         },
                     "errors": form.errors
@@ -116,7 +116,7 @@ class UserProfileView(UserAuthenticationCheckMixin, View):
         
         return inertia_render(
             request,
-            "ProfileForm",
+            "UserProfilePage",
             props={
                     "user": user_data,
                     "groups": groups_data,
@@ -204,7 +204,47 @@ class UserCabinetView(UserAuthenticationCheckMixin, View):
 
         return redirect(reverse('users:user_cabinet'))
 
+
 class UserRegister(View):
+    
+    """
+    Страница регистрации и аутентификации пользователя
+    При первом посещении рендерится страница регистрации GET запрос.
+    Props возвращает пустые поля формы email и password:
+        {
+            "email": "",
+            "password": ""
+        }
+    """ 
+       
+    """
+    После заполнения формы на сервер направляется POST запрос с данными формы,
+    метод post перенаправляет на главную страницу с сообщением об
+    успешной регистрации, либо возвращает форму регистрации с props
+    email, password-пустое поле, сообщение об ошибке если есть.
+    {
+        "form": {
+            "email": request.POST.get("email", ""),
+            "password": ""
+        },
+        "errors": form.errors
+    }
+    """
+    
+    
+    def get(self, request):
+        return inertia_render(
+            request,
+            "FormRegistration",
+            props={
+                "form": {
+                    "email": "",
+                    "password": "",
+                },
+                "errors": {}
+            }
+        )
+        
     def post(self, request, *args, **kwargs):
         form = UserRegForm(data=request.POST)
         if form.is_valid():
@@ -278,19 +318,19 @@ rK3p1E6Fc9XhpNRPhra9i9jUSSr4XI6zeI6povWGv3iMqqWLA56gbCOM1NMMeUcW67B5lB\
     VllVgGTFSVcEkK1Ng8Qc7XNEEw9EJB+VJN3CCQfsvbOwlQ6QJR+XP/jRpQScdi4SU3\
         XZJPk+ha9DmSdWVpinGtrrSTv+amjKDkc3iq7Kbt0mV9YVaTJOmdfEdPFcUdZo\
             2xpRdViVJi3zTYik+wqvoR3h/xU/4DwzAeQMogZYGAAAAAElFTkSuQmCC'
-            form.save()
-            messages.add_message(request,
-                                 messages.SUCCESS,
-                                 'Пользователь успешно зарегистрирован')
-            return redirect(reverse('users:login'))
-        return render(request, 'users/register.html', {'form': form})
-
-    def get(self, request, *args, **kwargs):
-        form = UserRegForm()
-        return render(
+            user.save()
+            request.session["flash_success"] = "Пользователь успешно зарегистрирован"
+            return redirect("/home")
+        return inertia_render(
             request,
-            'users/register.html',
-            {'form': form}
+            'FormRegistration',
+            props={
+                "form": {
+                    "email": request.POST.get("email", ""),
+                    "password": ""
+                },
+                "errors": form.errors
+            }
         )
 
 
