@@ -477,6 +477,25 @@ class RestorePasswordRequestView(View):
 
 
 class RestorePasswordView(View):
+    """
+    Метод get возвращает props 
+    {
+        "new_password1": "",
+        "new_password2": "",
+        "id": uid,
+        "token": token,
+    }
+    
+    Метод post либо сообщает о направлении информаци на email
+    и релирект на страницу login,
+    либо сообщение об ошибке в введенном eamil и возвращает props 
+    {
+        "new_password1": .......,
+        "new_password2": .......,
+        "id": uid,
+        "token": token,
+    }
+    """
     def get(self, request, *args, **kwargs):
         try:
             uid = kwargs['uidb64']
