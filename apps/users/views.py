@@ -169,7 +169,7 @@ class UserCabinetView(UserAuthenticationCheckMixin, View):
     def get(self, request, *args, **kwargs):
         user = request.user
         props = self._build_base_props(request, user)
-        return inertia_render(request, 'UserProfile', props)
+        return inertia_render(request, 'UserProfilePage', props=props)
 
     def post(self, request, *args, **kwargs):
         user = request.user
@@ -200,7 +200,7 @@ class UserCabinetView(UserAuthenticationCheckMixin, View):
                     'first_name': request.POST.get('first_name', ''),
                     'email': request.POST.get('email', ''),
                 }
-                return inertia_render(request, 'UserProfile', props)
+                return inertia_render(request, 'UserProfilePage', props=props)
 
         return redirect(reverse('users:user_cabinet'))
 
@@ -215,9 +215,6 @@ class UserRegister(View):
             "email": "",
             "password": ""
         }
-    """ 
-       
-    """
     После заполнения формы на сервер направляется POST запрос с данными формы,
     метод post перенаправляет на главную страницу с сообщением об
     успешной регистрации, либо возвращает форму регистрации с props
@@ -230,7 +227,6 @@ class UserRegister(View):
         "errors": form.errors
     }
     """
-    
     
     def get(self, request):
         return inertia_render(
@@ -319,7 +315,8 @@ rK3p1E6Fc9XhpNRPhra9i9jUSSr4XI6zeI6povWGv3iMqqWLA56gbCOM1NMMeUcW67B5lB\
         XZJPk+ha9DmSdWVpinGtrrSTv+amjKDkc3iq7Kbt0mV9YVaTJOmdfEdPFcUdZo\
             2xpRdViVJi3zTYik+wqvoR3h/xU/4DwzAeQMogZYGAAAAAElFTkSuQmCC'
             user.save()
-            request.session["flash_success"] = "Пользователь успешно зарегистрирован"
+            request.session["flash_success"] = \
+                "Пользователь успешно зарегистрирован"
             return redirect("/home")
         return inertia_render(
             request,
@@ -335,28 +332,60 @@ rK3p1E6Fc9XhpNRPhra9i9jUSSr4XI6zeI6povWGv3iMqqWLA56gbCOM1NMMeUcW67B5lB\
 
 
 class UserUpdate(UserAuthenticationCheckMixin, View):
+    
+    """
+    Метод get рендерит страницу UpdateUserProfile и передает данные в props
+    
+    {
+        'username': .....,
+        'first_name': ........,
+        'last_name': .......,
+        'avatar_image': .......,
+        'email': ........,
+        'bio': ......,
+    }
+    """
+    """
+    Метод post при успешном изменении данных перенаправляет 
+    на страницу профиля пользователя и выводит флеш сообжение 
+    об успешности изменений сохраняя данные в БД иначе
+    
+    рендерит страницу изменений профиля, передает props с данными:
+    {
+        'username': .....,
+        'first_name': ........,
+        'last_name': .......,
+        'avatar_image': .......,
+        'email': ........,
+        'bio': ......,
+    }
+    нформацию об ошибке:
+    "errors": form.errors
+    """
+    
     def get(self, request, *args, **kwargs):
         if request.user.username == kwargs.get('username'):
-            form = UserUpdateForm(initial={
+            
+            data = {
                 'username': request.user.username,
                 'first_name': request.user.first_name,
                 'last_name': request.user.last_name,
                 'avatar_image': request.user.avatar_image,
                 'email': request.user.email,
                 'bio': request.user.bio,
-            })
-            return render(
+            }
+            return inertia_render(
                 request,
-                'users/update.html',
-                {'form': form,
-                 'username': request.user.username,
-                 'user': request.user,
+                'UpdateUserProfile',
+                props={
+                    'form': data,
+                    'errors': {} 
                 }
             )
-        messages.add_message(request,
-                             messages.ERROR,
-                        'У вас нет прав для изменения другого пользователя.')
-        return redirect(reverse('users:profile'))
+        
+        request.session["flash_error"] = \
+            "У вас нет прав для изменения другого пользователя."
+        return redirect(reverse('users:user_cabinet'))
 
     def post(self, request, *args, **kwargs):
         username = kwargs.get('username')
@@ -364,14 +393,25 @@ class UserUpdate(UserAuthenticationCheckMixin, View):
         form = UserUpdateForm(data=request.POST, instance=user)
         if form.is_valid():
             form.save()
-            messages.add_message(request,
-                                 messages.SUCCESS,
-                                 'Профиль успешно изменен')
-            return redirect(reverse('users:profile'))
-        return render(
+            request.session["flash_success"] = \
+                "Профиль успешно изменен."
+            return redirect(reverse('users:user_cabinet'))
+        
+        data = {
+                'username': user.username,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'avatar_image': user.avatar_image,
+                'email': user.email,
+                'bio': user.bio,
+            }
+        return inertia_render(
             request,
-            'users/update.html',
-            {'form': form}
+            'UpdateUserProfile',
+            props={
+                'form': data,
+                'errors': form.errors
+            }
         )
 
 
