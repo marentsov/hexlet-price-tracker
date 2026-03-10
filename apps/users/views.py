@@ -212,17 +212,30 @@ class UserRegister(View):
     При первом посещении рендерится страница регистрации GET запрос.
     Props возвращает пустые поля формы email и password:
         {
+            "first_name": "",
+            "last_name": "",
+            "username": "",
+            "password1": "",
+            "password2": "",
             "email": "",
-            "password": ""
+            "bio": "",
+            "avatar_image": ""
         }
-    После заполнения формы на сервер направляется POST запрос с данными формы,
-    метод post перенаправляет на главную страницу с сообщением об
-    успешной регистрации, либо возвращает форму регистрации с props
-    email, password-пустое поле, сообщение об ошибке если есть.
+        
+    POST /register/ 
+    Назначение: обрабатывает отправку данных формы регистрации.
+    Входные данные (request.POST):
+    
     {
-        "form": {
-            "email": request.POST.get("email", ""),
-            "password": ""
+        "data": {
+            "first_name": "",
+            "last_name": "",
+            "username": "",
+            "password1": "",
+            "password2": "",
+            "email": "",
+            "bio": "",
+            "avatar_image": ""
         },
         "errors": form.errors
     }
@@ -232,12 +245,15 @@ class UserRegister(View):
         return inertia_render(
             request,
             "FormRegistration",
-            props={
-                "form": {
-                    "email": "",
-                    "password": "",
-                },
-                "errors": {}
+            props = {
+                "first_name": "",
+                "last_name": "",
+                "username": "",
+                "password1": "",
+                "password2": "",
+                "email": "",
+                "bio": "",
+                "avatar_image": ""
             }
         )
         
@@ -322,11 +338,17 @@ rK3p1E6Fc9XhpNRPhra9i9jUSSr4XI6zeI6povWGv3iMqqWLA56gbCOM1NMMeUcW67B5lB\
             request,
             'FormRegistration',
             props={
-                "form": {
+                "data": { 
+                    "first_name": request.POST.get("first_name", ""),
+                    "last_name": request.POST.get("last_name", ""),
+                    "username": request.POST.get("username", ""),
+                    "password1": request.POST.get("password1", ""),
+                    "password2": request.POST.get("password2", ""),
                     "email": request.POST.get("email", ""),
-                    "password": ""
+                    "bio": request.POST.get("bio", ""),
+                    "avatar_image": request.POST.get("avatar_image", "")
                 },
-                "errors": form.errors
+                "errors": form.errors,
             }
         )
 
@@ -337,27 +359,31 @@ class UserUpdate(UserAuthenticationCheckMixin, View):
     Метод get рендерит страницу UpdateUserProfile и передает данные в props
     
     {
-        'username': .....,
         'first_name': ........,
         'last_name': .......,
-        'avatar_image': .......,
+        'username': .....,
+        'password1': "",
+        'password2': "",
         'email': ........,
         'bio': ......,
+        'avatar_image': .......,
     }
-    """
-    """
+    
     Метод post при успешном изменении данных перенаправляет 
     на страницу профиля пользователя и выводит флеш сообжение 
     об успешности изменений сохраняя данные в БД иначе
     
     рендерит страницу изменений профиля, передает props с данными:
     {
-        'username': .....,
+        {
         'first_name': ........,
         'last_name': .......,
-        'avatar_image': .......,
+        'username': .....,
+        'password1': "",
+        'password2': "",
         'email': ........,
         'bio': ......,
+        'avatar_image': .......,
     }
     нформацию об ошибке:
     "errors": form.errors
@@ -367,12 +393,14 @@ class UserUpdate(UserAuthenticationCheckMixin, View):
         if request.user.username == kwargs.get('username'):
             
             data = {
-                'username': request.user.username,
-                'first_name': request.user.first_name,
-                'last_name': request.user.last_name,
-                'avatar_image': request.user.avatar_image,
-                'email': request.user.email,
-                'bio': request.user.bio,
+                "first_name": request.user.first_name,
+                "last_name": request.user.last_name,
+                "username": request.user.username,
+                "password1":"",
+                "password2":"",
+                "email": request.user.email,
+                "bio": request.user.bio,
+                "avatar_image": request.user.avatar_image,
             }
             return inertia_render(
                 request,
@@ -398,12 +426,15 @@ class UserUpdate(UserAuthenticationCheckMixin, View):
             return redirect(reverse('users:profile'))
         
         data = {
-                'username': user.username,
-                'first_name': user.first_name,
-                'last_name': user.last_name,
-                'avatar_image': user.avatar_image,
-                'email': user.email,
-                'bio': user.bio,
+                
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "username": user.username,
+                "password1": "",
+                "password2": "",
+                "email": user.email,
+                "bio": user.bio,
+                "avatar_image": user.avatar_image,
             }
         return inertia_render(
             request,
